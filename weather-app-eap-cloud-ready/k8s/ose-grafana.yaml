@@ -1,0 +1,85 @@
+﻿apiVersion: apps.openshift.io/v1
+kind: DeploymentConfig
+metadata:
+  name: ose-grafana
+  namespace: redhat-jboss-eap-cloud-ready-demo
+  labels:
+    app: ose-grafana
+spec:
+  replicas: 1
+  selector:
+    app: ose-grafana
+    deploymentconfig: ose-grafana
+  template:
+    metadata:
+      labels:
+        app: ose-grafana
+        deploymentconfig: ose-grafana
+    spec:
+      volumes:
+        - name: volume-grafana-prometheus-datasource
+          configMap:
+            name: grafana
+            items:
+              - key: datasource-prometheus.yaml
+                path: datasource-prometheus.yaml
+        - name: volume-dashboard
+          configMap:
+            name: grafana
+            items:
+              - key: grafana-dashboard.yaml
+                path: grafana-dashboard.yaml
+        - name: volume-eap-dashboard
+          configMap:
+            name: grafana
+            items:
+              - key: jboss_eap_grafana_dashboard.json
+                path: jboss_eap_grafana_dashboard.json
+      containers:
+        - name: ose-grafana
+          image: >-
+            registry.redhat.io/openshift4/ose-grafana
+          ports:
+            - containerPort: 3000
+              protocol: TCP
+          resources: {}
+          volumeMounts:
+            - name: volume-grafana-prometheus-datasource
+              mountPath: /etc/grafana/provisioning/datasources
+            - name: volume-dashboard
+              mountPath: /etc/grafana/provisioning/dashboards
+            - name: volume-eap-dashboard
+              mountPath: /var/lib/grafana/dashboards
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: ose-grafana
+  namespace: redhat-jboss-eap-cloud-ready-demo
+  labels:
+    app: ose-grafana
+spec:
+  ports:
+    - name: 3000-tcp
+      protocol: TCP
+      port: 3000
+      targetPort: 3000
+  selector:
+    app: ose-grafana
+    deploymentconfig: ose-grafana
+---
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: ose-grafana
+  namespace: redhat-jboss-eap-cloud-ready-demo
+  labels:
+    app: ose-grafana
+spec:
+  to:
+    kind: Service
+    name: ose-grafana
+  port:
+    targetPort: 3000-tcp
+
+

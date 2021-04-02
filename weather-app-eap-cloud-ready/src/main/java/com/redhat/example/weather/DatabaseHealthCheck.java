@@ -3,16 +3,16 @@ package com.redhat.example.weather;
 import javax.enterprise.context.ApplicationScoped;
 import java.io.IOException;
 import java.net.Socket;
-import org.eclipse.microprofile.health.Health;
 import org.eclipse.microprofile.health.HealthCheck;
 import org.eclipse.microprofile.health.HealthCheckResponse;
 import org.eclipse.microprofile.health.HealthCheckResponseBuilder;
+import org.eclipse.microprofile.health.Readiness;
 
 /**
  *
  * @author maurovocale
  */
-@Health
+@Readiness
 @ApplicationScoped
 public class DatabaseHealthCheck implements HealthCheck {
 
