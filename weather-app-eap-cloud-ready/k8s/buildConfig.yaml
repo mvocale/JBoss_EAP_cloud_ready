@@ -1,0 +1,75 @@
+kind: ImageStream
+apiVersion: image.openshift.io/v1
+metadata:
+  name: weather-app-eap-cloud-ready-build-artifacts
+  labels:
+    application: weather-app-eap-cloud-ready-build-artifacts
+---
+kind: ImageStream
+apiVersion: image.openshift.io/v1
+metadata:
+  name: weather-app-eap-cloud-ready
+  labels:
+    application: weather-app-eap-cloud-ready
+---
+kind: BuildConfig
+apiVersion: build.openshift.io/v1
+metadata:
+  name: weather-app-eap-cloud-ready-build-artifacts
+  namespace: redhat-jboss-eap-cloud-ready-demo
+  labels:
+    build: weather-app-eap-cloud-ready-build-artifacts
+spec:
+  output:
+    to:
+      kind: ImageStreamTag
+      name: 'weather-app-eap-cloud-ready-build-artifacts:latest'
+  resources: {}
+  strategy:
+    type: Source
+    sourceStrategy:
+      from:
+        kind: ImageStreamTag
+        namespace: redhat-jboss-eap-cloud-ready-demo
+        name: 'eap-xp2-openjdk11-openshift-rhel8:latest'
+  source:
+    type: Binary
+    binary: {}
+---
+kind: BuildConfig
+apiVersion: build.openshift.io/v1
+metadata:
+  labels:
+    application: weather-app-eap-cloud-ready
+  name: weather-app-eap-cloud-ready
+spec:
+  output:
+    to:
+      kind: ImageStreamTag
+      name: weather-app-eap-cloud-ready:latest
+  source:
+    dockerfile: |-
+      FROM eap-xp2-openjdk11-runtime-openshift-rhel8
+      COPY /server $JBOSS_HOME
+      USER root
+      RUN chown -R jboss:root $JBOSS_HOME && chmod -R ug+rwX $JBOSS_HOME
+      USER jboss
+      CMD $JBOSS_HOME/bin/openshift-launch.sh
+    images:
+    - from:
+        kind: ImageStreamTag
+        name: weather-app-eap-cloud-ready-build-artifacts:latest
+      paths:
+      - sourcePath: "/s2i-output/server/"
+        destinationDir: "."
+  strategy:
+    dockerStrategy:
+      imageOptimizationPolicy: SkipLayers
+      from:
+        kind: ImageStreamTag
+        name: eap-xp2-openjdk11-runtime-openshift-rhel8:latest
+        namespace: redhat-jboss-eap-cloud-ready-demo
+    type: Docker
+  triggers:
+  - imageChange: {}
+    type: ImageChange

@@ -61,14 +61,17 @@ echo ---- Weather APP EAP Cloud Ready
 ### Import image related to JBoss EAP XP 2.0 - Openjdk 11 ###
 oc import-image jboss-eap-7/eap-xp2-openjdk11-openshift-rhel8 --from=registry.redhat.io/jboss-eap-7/eap-xp2-openjdk11-openshift-rhel8 --confirm
 
-### Create the build related to the weather app cloud ready that will be deployed on JBoss EAP XP 2 ###
-oc new-build eap-xp2-openjdk11-openshift-rhel8 --binary=true --name=weather-app-eap-cloud-ready
+### Import image related to JBoss EAP XP 2.0 - Openjdk 11 - Runtime ###
+oc import-image jboss-eap-7/eap-xp2-openjdk11-runtime-openshift-rhel8 --from=registry.redhat.io/jboss-eap-7/eap-xp2-openjdk11-runtime-openshift-rhel8 --confirm
 
 ### Move to the project directory ###
 cd ../weather-app-eap-cloud-ready
 
+### Create the ImageStreams and the chained builds config to make the runtime image with JBoss EAP XP 2 and the application
+oc create -f k8s/buildConfig.yaml
+
 ### Start the build of the application on Openshift ###
-oc start-build weather-app-eap-cloud-ready --from-dir=. --wait
+oc start-build weather-app-eap-cloud-ready-build-artifacts --from-dir=. --wait
 
 ### Create the weather application for JBoss EAP XP 2 and configure it ###
 oc create -f k8s/weather-app-eap-cloud-ready.yaml

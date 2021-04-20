@@ -1,6 +1,6 @@
 # Weather app cloud ready on JBoss EAP XP 2
 
-This is a simple project based on JAX-RS, JPA and Microprofile specifications migrated from JEE 8 to Jakarta EE 8 (<https://jakarta.ee/>). The code is taken from the application weather-app GitHub Pages used in Katacoda JEE Openshift learning (<https://www.katacoda.com/openshift/courses/middleware/middleware-javaee8>) and modified to use Jakarta EE 8 specifications and Microprofile specificatons on top of JBoss EAP EAP XP 2 and Openshift 4.7
+This is a simple project based on JAX-RS, JPA and Microprofile specifications migrated from JEE 8 to Jakarta EE 8 (<https://jakarta.ee/>). The code is taken from the application weather-app GitHub Pages used in Katacoda JEE Openshift learning (<https://www.katacoda.com/openshift/courses/middleware/middleware-javaee8>) and modified to use Jakarta EE 8 specifications and Microprofile specificatons on top of JBoss EAP EAP XP 2 and Openshift 4.7. The final container image was improved using the runtime version of JBoss EAP EAP XP 2 and also through Galleon to use only the required subsystems.
 
 ## Install on Openshift
 
@@ -37,7 +37,7 @@ You can install your application on Openshift, remote cluster or local Red Hat C
    oc import-image rhel8/postgresql-12 --from=registry.redhat.io/rhel8/postgresql-12 --confirm \
    oc new-app \
       -e POSTGRESQL_USER=mauro \
-      -e POSTGRESQL_PASSWORD=secret \ 
+      -e POSTGRESQL_PASSWORD=secret \
       -e POSTGRESQL_DATABASE=weather \
       postgresql-12 \
       --name=weather-postgresql
