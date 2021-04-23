@@ -38,8 +38,7 @@ You can install your application on Openshift, remote cluster or local Red Hat C
    oc new-app \
       -e POSTGRESQL_USER=mauro \
       -e POSTGRESQL_PASSWORD=secret \
-      -e POSTGRESQL_DATABASE=weather \
-      postgresql-12 \
+      -e POSTGRESQL_DATABASE=weather postgresql-12 \
       --name=weather-postgresql
    ```
 
