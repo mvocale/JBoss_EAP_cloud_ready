@@ -70,10 +70,16 @@ You can install your application on Openshift, remote cluster or local Red Hat C
    oc import-image jboss-eap-7/eap-xp2-openjdk11-openshift-rhel8 --from=registry.redhat.io/jboss-eap-7/eap-xp2-openjdk11-openshift-rhel8 --confirm
    ```
 
-   Create the build related to the weather app cloud ready that will be deployed on JBoss EAP XP 2
+   Import image related to JBoss EAP XP 2.0 - Openjdk 11 - Runtime
 
    ```sh
-   oc new-build eap-xp2-openjdk11-openshift-rhel8 --binary=true --name=weather-app-eap-cloud-ready
+   oc import-image jboss-eap-7/eap-xp2-openjdk11-runtime-openshift-rhel8 --from=registry.redhat.io/jboss-eap-7 eap-xp2-openjdk11-runtime-openshift-rhel8 --confirm
+   ```
+
+   Create the ImageStreams and the chained builds config to make the runtime image with JBoss EAP XP 2 and the application
+
+   ```sh
+   oc create -f k8s/buildConfig.yaml
    ```
 
    Before executing the command check to be in the weather-app-eap-cloud-ready folder-project.
@@ -81,7 +87,7 @@ You can install your application on Openshift, remote cluster or local Red Hat C
    Start the build of the application on Openshift
 
    ```sh
-   oc start-build weather-app-eap-cloud-ready --from-dir=. --wait
+   oc start-build weather-app-eap-cloud-ready-build-artifacts --from-dir=. --wait
    ```
 
    Create the weather application for JBoss EAP XP 2 and configure it
@@ -171,7 +177,7 @@ You can also test the liveness of the application, as described into the Micropr
    /subsystem=microprofile-health-smallrye:check
    ```
 
-## Test the Microprofile specificatons
+## Test the Microprofile specifications
 
 ### Health
 
