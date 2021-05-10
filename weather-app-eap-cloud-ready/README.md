@@ -90,7 +90,13 @@ You can install your application on Openshift, remote cluster or local Red Hat C
    oc start-build weather-app-eap-cloud-ready-build-artifacts --from-dir=. --wait
    ```
 
-   Create the weather application for JBoss EAP XP 2 and configure it
+   Then check the status of the second build
+
+   ```sh
+   oc get build weather-app-eap-cloud-ready-1 --watch
+   ```
+
+   When the status move from Pending to Complete we can create the weather application for JBoss EAP XP 2 and configure it
 
    ```sh
    oc create -f k8s/weather-app-eap-cloud-ready.yaml
