@@ -73,6 +73,18 @@ oc create -f k8s/buildConfig.yaml
 ### Start the build of the application on Openshift ###
 oc start-build weather-app-eap-cloud-ready-build-artifacts --from-dir=. --wait
 
+### Check if the chained build is completed ###
+while :
+do
+	if [[ $(oc get build weather-app-eap-cloud-ready-1 -o=jsonpath='{ .status.phase }') == 'Complete' ]]; then
+  		echo "Build Completed!"
+  		break;
+  	else 
+  		sleep 15
+  		echo "Building runtime image"
+  	fi
+done;
+
 ### Create the weather application for JBoss EAP XP 2 and configure it ###
 oc create -f k8s/weather-app-eap-cloud-ready.yaml
 
