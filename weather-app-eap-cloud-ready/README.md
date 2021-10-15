@@ -37,8 +37,8 @@ You can install your application on Openshift, remote cluster or local Red Hat C
    oc import-image rhel8/postgresql-13:1-21 --from=registry.redhat.io/rhel8/postgresql-13:1-21 --confirm \
    oc new-app \
       -e POSTGRESQL_USER=mauro \
-      -ePOSTGRESQL_PASSWORD=secret \
-      -ePOSTGRESQL_DATABASE=weather postgresql-13:1-21 \
+      -e POSTGRESQL_PASSWORD=secret \
+      -e POSTGRESQL_DATABASE=weather postgresql-13:1-21 \
       --name=weather-postgresql
    oc patch dc weather-postgresql --patch '{"metadata": { "labels": { "app.openshift.io/runtime": "postgresql" } } }'
    ```
