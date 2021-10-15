@@ -2,20 +2,21 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.redhat.examples</groupId>
+    <parent>
+        <groupId>com.redhat.examples</groupId>
+        <artifactId>weather-app-cloud-ready-parent</artifactId>
+        <version>1.0.0</version>
+    </parent>
     <artifactId>weather-app-cloud-ready</artifactId>
     <packaging>war</packaging>
     <version>1.0</version>
 
     <properties>
         <failOnMissingWebXml>false</failOnMissingWebXml>
-        <version.wildfly.maven.plugin>2.0.2.Final</version.wildfly.maven.plugin>
-        <maven.compiler.source>11</maven.compiler.source>
-        <maven.compiler.target>11</maven.compiler.target>
-        <version.server.bom>7.3.5.GA</version.server.bom>
-        <version.microprofile.bom>2.0.0.GA</version.microprofile.bom>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <version.server.bom>7.4.1.GA</version.server.bom>
+        <version.microprofile.bom>3.0.0.GA-7.4.1.GA</version.microprofile.bom>
+        <bootable.jar.maven.plugin.version>4.1.0.Final-redhat-00001</bootable.jar.maven.plugin.version>
+        <version.wildfly.galleon.pack>3.0.0.GA-redhat-00005</version.wildfly.galleon.pack>
     </properties>
 
     <dependencyManagement>
@@ -53,9 +54,9 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>javax.annotation</groupId>
-            <artifactId>javax.annotation-api</artifactId>
-            <version>1.3.2</version>
+            <groupId>org.jboss.spec.javax.annotation</groupId>
+            <artifactId>jboss-annotations-api_1.3_spec</artifactId>
+            <scope>provided</scope>
         </dependency>
         <!-- Import the Jakarta REST API, we use provided scope as the API is included in the server -->
         <dependency>
@@ -101,14 +102,38 @@
         </dependency>
     </dependencies>
     <build>
-        <finalName>ROOT</finalName>
         <plugins>
             <plugin>
                 <groupId>org.wildfly.plugins</groupId>
-                <artifactId>wildfly-maven-plugin</artifactId>
-                <version>${version.wildfly.maven.plugin}</version>
+                <artifactId>wildfly-jar-maven-plugin</artifactId>
+                <version>${bootable.jar.maven.plugin.version}</version>
+                <configuration>
+                    <feature-packs>
+                        <feature-pack>
+                            <location>org.jboss.eap:wildfly-galleon-pack:${version.wildfly.galleon.pack}</location>
+                        </feature-pack>
+                        <feature-pack>
+                            <groupId>com.redhat.examples</groupId>
+                            <artifactId>postgresql-layer</artifactId>
+                            <version>1.0.0</version>
+                        </feature-pack>
+                    </feature-packs>
+                    <cloud />
+                    <layers>
+                        <layer>jaxrs-server</layer>
+                        <layer>microprofile-platform</layer>
+                        <layer>postgresql-datasource</layer>
+                    </layers>
+                    <cloud/>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>package</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
-
 </project>

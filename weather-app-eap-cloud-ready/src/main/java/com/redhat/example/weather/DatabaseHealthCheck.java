@@ -9,8 +9,9 @@ import org.eclipse.microprofile.health.HealthCheckResponseBuilder;
 import org.eclipse.microprofile.health.Readiness;
 
 /**
- *
- * @author maurovocale
+ * Class the implements the microprofile readiness checks
+ * 
+ * @author Mauro Vocale
  */
 @Readiness
 @ApplicationScoped
@@ -36,7 +37,7 @@ public class DatabaseHealthCheck implements HealthCheck {
     }
 
     private void pingServer(String dbhost, int port) throws IOException {
-        Socket socket = new Socket(dbhost, port);
+        var socket = new Socket(dbhost, port);
         socket.close();
 
     }

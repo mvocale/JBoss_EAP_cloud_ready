@@ -1,5 +1,5 @@
-﻿apiVersion: apps.openshift.io/v1
-kind: DeploymentConfig
+﻿kind: DeploymentConfig
+apiVersion: apps.openshift.io/v1
 metadata:
   name: weather-app-eap-cloud-ready
   namespace: redhat-jboss-eap-cloud-ready-demo
@@ -51,23 +51,14 @@ spec:
             - containerPort: 8778
               protocol: TCP
           env:
-            - name: DB_DATABASE
-              value: weather
-            - name: DB_DRIVER
-              value: postgresql
             - name: DB_JNDI
               value: 'java:jboss/datasources/WeatherDS'
-            - name: DB_NONXA
-              value: 'true'
-            - name: DB_PASSWORD
-              value: secret
-            - name: DB_SERVICE_PREFIX_MAPPING
-              value: weatherds-postgresql=DB
-            - name: DB_URL
-              value: >-
-                jdbc:postgresql://$(WEATHER_POSTGRESQL_SERVICE_HOST):$(WEATHER_POSTGRESQL_SERVICE_PORT)/weather
+            - name: DB_DATABASE
+              value: weather
             - name: DB_USERNAME
               value: mauro
+            - name: DB_PASSWORD
+              value: secret
             - name: JAEGER_AGENT_HOST
               value: $(JAEGER_ALL_IN_ONE_RHEL8_SERVICE_HOST)
             - name: JAEGER_AGENT_PORT
@@ -158,7 +149,3 @@ spec:
   port:
     targetPort: 9990
   wildcardPolicy: None
-
-
-
-

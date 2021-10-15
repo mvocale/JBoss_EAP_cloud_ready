@@ -28,10 +28,13 @@ spec:
   strategy:
     type: Source
     sourceStrategy:
+      env:
+        - name: ARTIFACT_DIR
+          value: weather-app-eap-cloud-ready/target
       from:
         kind: ImageStreamTag
         namespace: redhat-jboss-eap-cloud-ready-demo
-        name: 'eap-xp2-openjdk11-openshift-rhel8:latest'
+        name: 'openjdk-11:1.10-1'
   source:
     type: Binary
     binary: {}
@@ -48,26 +51,23 @@ spec:
       kind: ImageStreamTag
       name: weather-app-eap-cloud-ready:latest
   source:
-    dockerfile: |-
-      FROM eap-xp2-openjdk11-runtime-openshift-rhel8
-      COPY /server $JBOSS_HOME
-      USER root
-      RUN chown -R jboss:root $JBOSS_HOME && chmod -R ug+rwX $JBOSS_HOME
-      USER jboss
-      CMD $JBOSS_HOME/bin/openshift-launch.sh
     images:
     - from:
         kind: ImageStreamTag
         name: weather-app-eap-cloud-ready-build-artifacts:latest
       paths:
-      - sourcePath: "/s2i-output/server/"
-        destinationDir: "."
+      - sourcePath: /deployments
+        destinationDir: ./deployments
+    dockerfile: |-
+      FROM openjdk-11:1.10-1
+      COPY deployments /
+      CMD  java -jar /deployments/weather-app-cloud-ready-1.0-bootable.jar
   strategy:
     dockerStrategy:
       imageOptimizationPolicy: SkipLayers
       from:
         kind: ImageStreamTag
-        name: eap-xp2-openjdk11-runtime-openshift-rhel8:latest
+        name: openjdk-11-runtime:1.10-1
         namespace: redhat-jboss-eap-cloud-ready-demo
     type: Docker
   triggers:

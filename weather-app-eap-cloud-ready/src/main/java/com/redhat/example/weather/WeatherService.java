@@ -16,7 +16,6 @@ import org.eclipse.microprofile.metrics.annotation.Timed;
 @Path("weather")
 public class WeatherService {
 
-
     @Inject
     SelectedCountry selectedCountry;
 

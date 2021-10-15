@@ -19,7 +19,7 @@ import org.eclipse.microprofile.health.Liveness;
 @ApplicationScoped
 public class DatabaseConnectionHealthCheck implements HealthCheck {
 
-    @Resource
+    @Resource(lookup = "java:jboss/datasources/WeatherDS")
     private DataSource datasource;
 
     @Override
@@ -38,7 +38,7 @@ public class DatabaseConnectionHealthCheck implements HealthCheck {
                         .withData("driverVersion", metaData.getDriverVersion())
                         .withData("isValid", isValid);
 
-            return responseBuilder.state(isValid).build();
+            return responseBuilder.status(isValid).build();
 
 
         } catch(SQLException  e) {

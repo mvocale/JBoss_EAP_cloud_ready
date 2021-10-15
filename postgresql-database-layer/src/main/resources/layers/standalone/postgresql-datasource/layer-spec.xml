@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<layer-spec xmlns="urn:jboss:galleon:layer-spec:1.0" name="postgresql-datasource">
+    <dependencies>
+        <layer name="postgresql-driver" />
+    </dependencies>
+    <feature spec="subsystem.datasources.data-source">
+        <param name="use-ccm" value="true" />
+        <param name="data-source" value="WeatherDS" />
+        <param name="enabled" value="true" />
+        <param name="use-java-context" value="true" />
+        <param name="jndi-name" value="${env.DB_JNDI}" />
+        <param name="connection-url" value="jdbc:postgresql://${env.WEATHER_POSTGRESQL_SERVICE_HOST}:${env.WEATHER_POSTGRESQL_SERVICE_PORT}/${env.DB_DATABASE}" />
+        <param name="driver-name" value="postgresql" />
+        <param name="user-name" value="${env.DB_USERNAME}" />
+        <param name="password" value="${env.DB_PASSWORD}" />
+        <param name="validate-on-match" value="false"/>
+        <param name="valid-connection-checker-class-name" value="org.jboss.jca.adapters.jdbc.extensions.postgres.PostgreSQLValidConnectionChecker"/>
+        <param name="exception-sorter-class-name" value="org.jboss.jca.adapters.jdbc.extensions.postgres.PostgreSQLExceptionSorter"/>
+        <param name="background-validation" value="true" />
+        <param name="background-validation-millis" value="60000" />
+        <param name="flush-strategy" value="IdleConnections" />
+        <param name="statistics-enabled" value="${wildfly.datasources.statistics-enabled:${wildfly.statistics-enabled:true}}" />
+    </feature>
+</layer-spec>
