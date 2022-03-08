@@ -1,0 +1,15 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: weather-postgresql
+  namespace: redhat-jboss-eap-cloud-ready-demo
+  labels:
+    app: weather-postgresql
+spec:
+  ports:
+    - name: postgresql-tcp
+      protocol: TCP
+      port: 5432
+      targetPort: 5432
+  selector:
+    deployment: weather-postgresql

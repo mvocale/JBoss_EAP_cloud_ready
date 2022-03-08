@@ -1,0 +1,28 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: weather-postgresql
+  namespace: redhat-jboss-eap-cloud-ready-demo
+  labels:
+    app: weather-postgresql
+    app.openshift.io/runtime: postgresql
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      deployment: weather-postgresql
+  template:
+    metadata:
+      labels:
+        deployment: weather-postgresql
+    spec:
+      containers:
+        - name: postgresql-13
+          image: >-
+            registry.redhat.io/rhel8/postgresql-13:1-31
+          ports:
+            - containerPort: 5432
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: postgres-config

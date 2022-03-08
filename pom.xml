@@ -9,7 +9,6 @@
     <name>parent</name>
 
     <modules>
-        <module>postgresql-database-layer</module>
         <module>weather-app-eap-cloud-ready</module>
     </modules>
 

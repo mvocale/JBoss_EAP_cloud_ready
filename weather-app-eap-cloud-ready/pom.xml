@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
@@ -13,10 +14,17 @@
 
     <properties>
         <failOnMissingWebXml>false</failOnMissingWebXml>
-        <version.server.bom>7.4.1.GA</version.server.bom>
-        <version.microprofile.bom>3.0.0.GA-7.4.1.GA</version.microprofile.bom>
+        <version.server.bom>7.4.3.GA</version.server.bom>
+        <version.microprofile.bom>3.0.0.GA-7.4.3.GA</version.microprofile.bom>
         <bootable.jar.maven.plugin.version>4.1.0.Final-redhat-00001</bootable.jar.maven.plugin.version>
-        <version.wildfly.galleon.pack>3.0.0.GA-redhat-00005</version.wildfly.galleon.pack>
+        <version.wildfly.galleon.pack>3.0.0.GA-redhat-00012</version.wildfly.galleon.pack>
+        <version.eap.datasources.galleon.pack>7.4.0.GA-redhat-00003</version.eap.datasources.galleon.pack>
+        <org.jboss.eap.datasources.postgresql.driver.version>42.2.23.redhat-00001</org.jboss.eap.datasources.postgresql.driver.version>
+        <!-- Image version used by JKube to create my application image -->
+        <jkube.generator.from>registry.access.redhat.com/ubi8/openjdk-11:1.11-2</jkube.generator.from>
+<!--        <jkube.generator.from>registry.access.redhat.com/ubi8/openjdk-11-runtime:1.10-1</jkube.generator.from>-->
+        <version.jkube.openshift.maven.plugin>1.7.0</version.jkube.openshift.maven.plugin>
+        <jkube.build.switchToDeployment>true</jkube.build.switchToDeployment>
     </properties>
 
     <dependencyManagement>
@@ -91,7 +99,7 @@
         <dependency>
             <groupId>org.microprofile-ext.openapi-ext</groupId>
             <artifactId>openapi-ui</artifactId>
-            <version>1.1.4</version>
+            <version>1.1.5</version>
             <scope>runtime</scope>
         </dependency>
         <!-- Import the MicroProfile Config API, we use provided scope as the API is included in the server -->
@@ -104,6 +112,26 @@
     <build>
         <plugins>
             <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>properties-maven-plugin</artifactId>
+                <version>1.0.0</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>set-system-properties</goal>
+                        </goals>
+                        <configuration>
+                            <properties>
+                                <property>
+                                    <name>org.jboss.eap.datasources.postgresql.driver.version</name>
+                                    <value>${org.jboss.eap.datasources.postgresql.driver.version}</value>
+                                </property>
+                            </properties>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
                 <groupId>org.wildfly.plugins</groupId>
                 <artifactId>wildfly-jar-maven-plugin</artifactId>
                 <version>${bootable.jar.maven.plugin.version}</version>
@@ -113,17 +141,18 @@
                             <location>org.jboss.eap:wildfly-galleon-pack:${version.wildfly.galleon.pack}</location>
                         </feature-pack>
                         <feature-pack>
-                            <groupId>com.redhat.examples</groupId>
-                            <artifactId>postgresql-layer</artifactId>
-                            <version>1.0.0</version>
+                            <location>org.jboss.eap:eap-datasources-galleon-pack:${version.eap.datasources.galleon.pack}</location>
                         </feature-pack>
                     </feature-packs>
-                    <cloud />
+                    <cloud/>
                     <layers>
                         <layer>jaxrs-server</layer>
                         <layer>microprofile-platform</layer>
                         <layer>postgresql-datasource</layer>
                     </layers>
+                    <excluded-layers>
+                        <layer>deployment-scanner</layer>
+                    </excluded-layers>
                     <cloud/>
                 </configuration>
                 <executions>
@@ -133,6 +162,98 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <!-- JKube -->
+            <plugin>
+                <groupId>org.eclipse.jkube</groupId>
+                <artifactId>openshift-maven-plugin</artifactId>
+                <version>${version.jkube.openshift.maven.plugin}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>resource</goal>
+                            <goal>build</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <!-- JKube XML Configuration approach -->
+                <configuration>
+                    <!-- Environment variables needed to configure the runtime image -->
+                    <resources>
+                        <labels>
+                            <deployment>
+                                <property>
+                                    <name>app.openshift.io/runtime</name>
+                                    <value>eap</value>
+                                </property>
+                            </deployment>
+                        </labels>
+                        <env>
+                            <!-- Variables needed with eap datasource galleon pack -->
+                            <POSTGRESQL_DATABASE>weather</POSTGRESQL_DATABASE>
+                            <POSTGRESQL_USER>mauro</POSTGRESQL_USER>
+                            <POSTGRESQL_PASSWORD>secret</POSTGRESQL_PASSWORD>
+                            <POSTGRESQL_URL>jdbc:postgresql://${env.WEATHER_POSTGRESQL_SERVICE_HOST}:${env.WEATHER_POSTGRESQL_SERVICE_PORT}/${env.POSTGRESQL_DATABASE}</POSTGRESQL_URL>
+                            <POSTGRESQL_DATASOURCE>WeatherDS</POSTGRESQL_DATASOURCE>
+                            <POSTGRESQL_ENABLED>true</POSTGRESQL_ENABLED>
+                            <POSTGRESQL_VALIDATE_ON_MATCH>false</POSTGRESQL_VALIDATE_ON_MATCH>
+                            <POSTGRESQL_BACKGROUND_VALIDATION>true</POSTGRESQL_BACKGROUND_VALIDATION>
+                            <POSTGRESQL_BACKGROUND_VALIDATION_MILLIS>60000</POSTGRESQL_BACKGROUND_VALIDATION_MILLIS>
+                            <POSTGRESQL_FLUSH_STRATEGY>IdleConnections</POSTGRESQL_FLUSH_STRATEGY>
+                            <JAEGER_AGENT_HOST>$(JAEGER_ALL_IN_ONE_RHEL8_SERVICE_HOST)</JAEGER_AGENT_HOST>
+                            <JAEGER_AGENT_PORT>$(JAEGER_ALL_IN_ONE_RHEL8_SERVICE_PORT_6831_UDP)</JAEGER_AGENT_PORT>
+                            <JAEGER_SAMPLER_PARAM>1</JAEGER_SAMPLER_PARAM>
+                            <JAEGER_SAMPLER_TYPE>const</JAEGER_SAMPLER_TYPE>
+                            <JAEGER_SERVICE_NAME>weather-app-eap-cloud-ready</JAEGER_SERVICE_NAME>
+                            <WILDFLY_TRACING_ENABLED>true</WILDFLY_TRACING_ENABLED>
+                            <JAVA_ARGS>-Dwildfly.datasources.statistics-enabled=true</JAVA_ARGS>
+                        </env>
+                        <!-- This is the kubernetes service that expose the JBoss EAP service -->
+                        <services>
+                            <service>
+                                <name>weather-app-eap-cloud-ready</name>
+                                <type>NodePort</type>
+                                <expose>true</expose>
+                                <ports>
+                                    <port>
+                                        <name>health-check</name>
+                                        <protocol>TCP</protocol>
+                                        <port>9990</port>
+                                        <targetPort>9990</targetPort>
+                                    </port>
+                                    <port>
+                                        <name>http</name>
+                                        <protocol>TCP</protocol>
+                                        <port>8080</port>
+                                        <targetPort>8080</targetPort>
+                                    </port>
+                                    <port>
+                                        <name>https</name>
+                                        <protocol>TCP</protocol>
+                                        <port>8443</port>
+                                        <targetPort>8443</targetPort>
+                                    </port>
+                                    <port>
+                                        <name>jolokia</name>
+                                        <protocol>TCP</protocol>
+                                        <port>8778</port>
+                                        <targetPort>8778</targetPort>
+                                    </port>
+                                </ports>
+                            </service>
+                        </services>
+                    </resources>
+                    <enricher>
+                        <config>
+                            <jkube-openshift-route>
+                                <!-- I need to use the fragments approach since my service expose
+                                    multiple ports and the enricher is not able to automatically generates
+                                    multiple routes -->
+                                <generateRoute>false</generateRoute>
+                            </jkube-openshift-route>
+                        </config>
+                    </enricher>
+                </configuration>
             </plugin>
         </plugins>
     </build>
