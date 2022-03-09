@@ -1,5 +1,3 @@
-kind: Route
-apiVersion: route.openshift.io/v1
 metadata:
   name: weather-app-eap-cloud-ready
   namespace: redhat-jboss-eap-cloud-ready-demo

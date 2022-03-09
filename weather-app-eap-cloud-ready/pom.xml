@@ -20,9 +20,6 @@
         <version.wildfly.galleon.pack>3.0.0.GA-redhat-00012</version.wildfly.galleon.pack>
         <version.eap.datasources.galleon.pack>7.4.0.GA-redhat-00003</version.eap.datasources.galleon.pack>
         <org.jboss.eap.datasources.postgresql.driver.version>42.2.23.redhat-00001</org.jboss.eap.datasources.postgresql.driver.version>
-        <!-- Image version used by JKube to create my application image -->
-        <jkube.generator.from>registry.access.redhat.com/ubi8/openjdk-11:1.11-2</jkube.generator.from>
-<!--        <jkube.generator.from>registry.access.redhat.com/ubi8/openjdk-11-runtime:1.10-1</jkube.generator.from>-->
         <version.jkube.openshift.maven.plugin>1.7.0</version.jkube.openshift.maven.plugin>
         <jkube.build.switchToDeployment>true</jkube.build.switchToDeployment>
     </properties>
@@ -110,6 +107,101 @@
         </dependency>
     </dependencies>
     <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.eclipse.jkube</groupId>
+                    <artifactId>openshift-maven-plugin</artifactId>
+                    <version>${version.jkube.openshift.maven.plugin}</version>
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>resource</goal>
+                                <goal>build</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                    <!-- JKube XML Configuration approach -->
+                    <configuration combine.children="append">
+                        <!-- Environment variables needed to configure the runtime image -->
+                        <resources>
+                            <labels>
+                                <deployment>
+                                    <property>
+                                        <name>app.openshift.io/runtime</name>
+                                        <value>eap</value>
+                                    </property>
+                                </deployment>
+                            </labels>
+                            <env>
+                                <!-- Variables needed with eap datasource galleon pack -->
+                                <POSTGRESQL_DATABASE>weather</POSTGRESQL_DATABASE>
+                                <POSTGRESQL_USER>mauro</POSTGRESQL_USER>
+                                <POSTGRESQL_PASSWORD>secret</POSTGRESQL_PASSWORD>
+                                <POSTGRESQL_URL>jdbc:postgresql://${env.WEATHER_POSTGRESQL_SERVICE_HOST}:${env.WEATHER_POSTGRESQL_SERVICE_PORT}/${env.POSTGRESQL_DATABASE}</POSTGRESQL_URL>
+                                <POSTGRESQL_DATASOURCE>WeatherDS</POSTGRESQL_DATASOURCE>
+                                <POSTGRESQL_ENABLED>true</POSTGRESQL_ENABLED>
+                                <POSTGRESQL_VALIDATE_ON_MATCH>false</POSTGRESQL_VALIDATE_ON_MATCH>
+                                <POSTGRESQL_BACKGROUND_VALIDATION>true</POSTGRESQL_BACKGROUND_VALIDATION>
+                                <POSTGRESQL_BACKGROUND_VALIDATION_MILLIS>60000</POSTGRESQL_BACKGROUND_VALIDATION_MILLIS>
+                                <POSTGRESQL_FLUSH_STRATEGY>IdleConnections</POSTGRESQL_FLUSH_STRATEGY>
+                                <JAEGER_AGENT_HOST>$(JAEGER_ALL_IN_ONE_RHEL8_SERVICE_HOST)</JAEGER_AGENT_HOST>
+                                <JAEGER_AGENT_PORT>$(JAEGER_ALL_IN_ONE_RHEL8_SERVICE_PORT_6831_UDP)</JAEGER_AGENT_PORT>
+                                <JAEGER_SAMPLER_PARAM>1</JAEGER_SAMPLER_PARAM>
+                                <JAEGER_SAMPLER_TYPE>const</JAEGER_SAMPLER_TYPE>
+                                <JAEGER_SERVICE_NAME>weather-app-eap-cloud-ready</JAEGER_SERVICE_NAME>
+                                <WILDFLY_TRACING_ENABLED>true</WILDFLY_TRACING_ENABLED>
+                                <JAVA_ARGS>-Dwildfly.datasources.statistics-enabled=true</JAVA_ARGS>
+                            </env>
+                            <!-- This is the kubernetes service that expose the JBoss EAP service -->
+                            <services>
+                                <service>
+                                    <name>weather-app-eap-cloud-ready</name>
+                                    <type>NodePort</type>
+                                    <expose>true</expose>
+                                    <ports>
+                                        <port>
+                                            <name>health-check</name>
+                                            <protocol>TCP</protocol>
+                                            <port>9990</port>
+                                            <targetPort>9990</targetPort>
+                                        </port>
+                                        <port>
+                                            <name>http</name>
+                                            <protocol>TCP</protocol>
+                                            <port>8080</port>
+                                            <targetPort>8080</targetPort>
+                                        </port>
+                                        <port>
+                                            <name>https</name>
+                                            <protocol>TCP</protocol>
+                                            <port>8443</port>
+                                            <targetPort>8443</targetPort>
+                                        </port>
+                                        <port>
+                                            <name>jolokia</name>
+                                            <protocol>TCP</protocol>
+                                            <port>8778</port>
+                                            <targetPort>8778</targetPort>
+                                        </port>
+                                    </ports>
+                                </service>
+                            </services>
+                        </resources>
+                        <enricher>
+                            <config>
+                                <jkube-openshift-route>
+                                    <!-- I need to use the fragments approach since my service expose
+                                        multiple ports and the enricher is not able to automatically generates
+                                        multiple routes -->
+                                    <generateRoute>false</generateRoute>
+                                </jkube-openshift-route>
+                            </config>
+                        </enricher>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
         <plugins>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
@@ -167,94 +259,58 @@
             <plugin>
                 <groupId>org.eclipse.jkube</groupId>
                 <artifactId>openshift-maven-plugin</artifactId>
-                <version>${version.jkube.openshift.maven.plugin}</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>resource</goal>
-                            <goal>build</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <!-- JKube XML Configuration approach -->
-                <configuration>
-                    <!-- Environment variables needed to configure the runtime image -->
-                    <resources>
-                        <labels>
-                            <deployment>
-                                <property>
-                                    <name>app.openshift.io/runtime</name>
-                                    <value>eap</value>
-                                </property>
-                            </deployment>
-                        </labels>
-                        <env>
-                            <!-- Variables needed with eap datasource galleon pack -->
-                            <POSTGRESQL_DATABASE>weather</POSTGRESQL_DATABASE>
-                            <POSTGRESQL_USER>mauro</POSTGRESQL_USER>
-                            <POSTGRESQL_PASSWORD>secret</POSTGRESQL_PASSWORD>
-                            <POSTGRESQL_URL>jdbc:postgresql://${env.WEATHER_POSTGRESQL_SERVICE_HOST}:${env.WEATHER_POSTGRESQL_SERVICE_PORT}/${env.POSTGRESQL_DATABASE}</POSTGRESQL_URL>
-                            <POSTGRESQL_DATASOURCE>WeatherDS</POSTGRESQL_DATASOURCE>
-                            <POSTGRESQL_ENABLED>true</POSTGRESQL_ENABLED>
-                            <POSTGRESQL_VALIDATE_ON_MATCH>false</POSTGRESQL_VALIDATE_ON_MATCH>
-                            <POSTGRESQL_BACKGROUND_VALIDATION>true</POSTGRESQL_BACKGROUND_VALIDATION>
-                            <POSTGRESQL_BACKGROUND_VALIDATION_MILLIS>60000</POSTGRESQL_BACKGROUND_VALIDATION_MILLIS>
-                            <POSTGRESQL_FLUSH_STRATEGY>IdleConnections</POSTGRESQL_FLUSH_STRATEGY>
-                            <JAEGER_AGENT_HOST>$(JAEGER_ALL_IN_ONE_RHEL8_SERVICE_HOST)</JAEGER_AGENT_HOST>
-                            <JAEGER_AGENT_PORT>$(JAEGER_ALL_IN_ONE_RHEL8_SERVICE_PORT_6831_UDP)</JAEGER_AGENT_PORT>
-                            <JAEGER_SAMPLER_PARAM>1</JAEGER_SAMPLER_PARAM>
-                            <JAEGER_SAMPLER_TYPE>const</JAEGER_SAMPLER_TYPE>
-                            <JAEGER_SERVICE_NAME>weather-app-eap-cloud-ready</JAEGER_SERVICE_NAME>
-                            <WILDFLY_TRACING_ENABLED>true</WILDFLY_TRACING_ENABLED>
-                            <JAVA_ARGS>-Dwildfly.datasources.statistics-enabled=true</JAVA_ARGS>
-                        </env>
-                        <!-- This is the kubernetes service that expose the JBoss EAP service -->
-                        <services>
-                            <service>
-                                <name>weather-app-eap-cloud-ready</name>
-                                <type>NodePort</type>
-                                <expose>true</expose>
-                                <ports>
-                                    <port>
-                                        <name>health-check</name>
-                                        <protocol>TCP</protocol>
-                                        <port>9990</port>
-                                        <targetPort>9990</targetPort>
-                                    </port>
-                                    <port>
-                                        <name>http</name>
-                                        <protocol>TCP</protocol>
-                                        <port>8080</port>
-                                        <targetPort>8080</targetPort>
-                                    </port>
-                                    <port>
-                                        <name>https</name>
-                                        <protocol>TCP</protocol>
-                                        <port>8443</port>
-                                        <targetPort>8443</targetPort>
-                                    </port>
-                                    <port>
-                                        <name>jolokia</name>
-                                        <protocol>TCP</protocol>
-                                        <port>8778</port>
-                                        <targetPort>8778</targetPort>
-                                    </port>
-                                </ports>
-                            </service>
-                        </services>
-                    </resources>
-                    <enricher>
-                        <config>
-                            <jkube-openshift-route>
-                                <!-- I need to use the fragments approach since my service expose
-                                    multiple ports and the enricher is not able to automatically generates
-                                    multiple routes -->
-                                <generateRoute>false</generateRoute>
-                            </jkube-openshift-route>
-                        </config>
-                    </enricher>
-                </configuration>
             </plugin>
         </plugins>
     </build>
+    <profiles>
+        <profile>
+            <id>prod</id>
+            <properties>
+                <jkube.build.strategy>docker</jkube.build.strategy>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.eclipse.jkube</groupId>
+                        <artifactId>openshift-maven-plugin</artifactId>
+                        <configuration combine.children="append">
+                            <images>
+                                <image>
+                                    <name>the-image-name</name>
+                                    <build>
+                                        <from>registry.access.redhat.com/ubi8/openjdk-11-runtime:1.10-1</from>
+                                        <assembly>
+                                            <targetDir>/deployments</targetDir>
+                                            <excludeFinalOutputArtifact>true</excludeFinalOutputArtifact>
+                                            <layers>
+                                                <layer>
+                                                    <id>bootable</id>
+                                                    <files>
+                                                        <file>
+                                                            <source>
+                                                                ${project.build.directory}/${project.artifactId}-${project.version}-bootable.jar
+                                                            </source>
+                                                            <outputDirectory>.</outputDirectory>
+                                                        </file>
+                                                    </files>
+                                                </layer>
+                                            </layers>
+                                        </assembly>
+                                        <ports>
+                                            <port>8080</port>
+                                            <port>8443</port>
+                                            <port>8778</port>
+                                        </ports>
+                                        <entryPoint>
+                                            <shell>java -jar /deployments/${project.artifactId}-${project.version}-bootable.jar</shell>
+                                        </entryPoint>
+                                    </build>
+                                </image>
+                            </images>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>
