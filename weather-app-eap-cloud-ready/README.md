@@ -1,7 +1,7 @@
 # Weather app cloud ready on JBoss EAP XP 3 bootable jar
 
 A simple project, weather-app-eap-cloud-ready, that is based on JAX-RS, JPA and Microprofile specifications migrated from JEE 8 to Jakarta EE 8, built using OpenJDK 11. The code is taken from the application weather-app GitHub Pages used in [Katacoda JEE Openshift learning](<https://www.katacoda.com/openshift/courses/middleware/middleware-javaee8>) and modified to use [Jakarta EE 8](<https://jakarta.ee/>) and [Microprofile 3](https://microprofile.io) specifications on top of JBoss EAP EAP XP 3, in bootable jar mode. Through the Galleon provisioning tool I set only the required subsystems, on top of Openshift 4.8. I used PostgreSQL database v. 13, and I configured the application's datasource using the [eap-datasources-galleon-pack](https://github.com/jbossas/eap-datasources-galleon-pack) feature. All the source code stages (build, resource's provisioning and deployment to Openshift) is implemented through [JKube](https://www.eclipse.org/jkube/).
-<!-- The final container image was improved using the runtime version of OpenJDK 11.-->
+The final container image was improved using the runtime version of OpenJDK 11.
 
 ## Install on Openshift
 
@@ -64,7 +64,7 @@ You can also test the liveness of the application, as described into the Micropr
 1. Connect to application pod
 
    ```sh
-   oc rsh dc/weather-app-eap-cloud-ready
+   oc rsh deployment/weather-app-cloud-ready
    ```
 
 2. Connect to EAP CLI ($UID_VALUE is related to the execution enviroment so press tab to autocomplete the path or find the right value)

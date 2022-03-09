@@ -20,11 +20,11 @@
         <version.wildfly.galleon.pack>3.0.0.GA-redhat-00012</version.wildfly.galleon.pack>
         <version.eap.datasources.galleon.pack>7.4.0.GA-redhat-00003</version.eap.datasources.galleon.pack>
         <org.jboss.eap.datasources.postgresql.driver.version>42.2.23.redhat-00001</org.jboss.eap.datasources.postgresql.driver.version>
-        <!-- Image version used by JKube to create my application image -->
-        <jkube.generator.from>registry.access.redhat.com/ubi8/openjdk-11:1.11-2</jkube.generator.from>
-<!--        <jkube.generator.from>registry.access.redhat.com/ubi8/openjdk-11-runtime:1.10-1</jkube.generator.from>-->
+        <!-- JKube properties to create my application image -->
         <version.jkube.openshift.maven.plugin>1.7.0</version.jkube.openshift.maven.plugin>
         <jkube.build.switchToDeployment>true</jkube.build.switchToDeployment>
+        <jkube.build.strategy>docker</jkube.build.strategy>
+        <application.runtime.image>registry.access.redhat.com/ubi8/openjdk-11-runtime:1.11-2.1645811205</application.runtime.image>
     </properties>
 
     <dependencyManagement>
@@ -177,8 +177,36 @@
                     </execution>
                 </executions>
                 <!-- JKube XML Configuration approach -->
-                <configuration>
+                <configuration combine.self="override">
                     <!-- Environment variables needed to configure the runtime image -->
+                    <images>
+                        <image>
+                            <name>weather-app-eap-cloud-ready</name>
+                            <build>
+                                <from>${application.runtime.image}</from>
+                                <assembly>
+                                    <targetDir>/deployments</targetDir>
+                                    <excludeFinalOutputArtifact>true</excludeFinalOutputArtifact>
+                                    <layers>
+                                        <layer>
+                                            <id>bootable</id>
+                                            <files>
+                                                <file>
+                                                    <source>
+                                                        ${project.build.directory}/${project.artifactId}-${project.version}-bootable.jar
+                                                    </source>
+                                                    <outputDirectory>.</outputDirectory>
+                                                </file>
+                                            </files>
+                                        </layer>
+                                    </layers>
+                                </assembly>
+                                <entryPoint>
+                                    <shell>java -jar /deployments/${project.artifactId}-${project.version}-bootable.jar -Dwildfly.datasources.statistics-enabled=true</shell>
+                                </entryPoint>
+                            </build>
+                        </image>
+                    </images>
                     <resources>
                         <labels>
                             <deployment>
