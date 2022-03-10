@@ -1,0 +1,31 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: ose-prometheus
+  namespace: redhat-jboss-eap-cloud-ready-demo
+  labels:
+    app: ose-prometheus
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      deployment: ose-prometheus
+  template:
+    metadata:
+      labels:
+        deployment: ose-prometheus
+    spec:
+      volumes:
+        - name: volume-prometheus
+          configMap:
+            name: prometheus
+      containers:
+        - name: ose-prometheus
+          image: registry.redhat.io/openshift4/ose-prometheus
+          ports:
+            - containerPort: 9090
+              protocol: TCP
+          resources: {}
+          volumeMounts:
+            - name: volume-prometheus
+              mountPath: /etc/prometheus

@@ -1,0 +1,14 @@
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: weather-app-eap-cloud-ready
+  namespace: redhat-jboss-eap-cloud-ready-demo
+  labels:
+    app: weather-app-eap-cloud-ready
+spec:
+  to:
+    kind: Service
+    name: weather-app-eap-cloud-ready
+  port:
+    targetPort: 8080
+  wildcardPolicy: None

@@ -1,0 +1,19 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: prometheus
+  namespace: redhat-jboss-eap-cloud-ready-demo
+data:
+  prometheus.yml: |-
+    global:
+      scrape_interval: 15s
+      evaluation_interval: 15s
+      external_labels:
+        monitor: 'JBoss-eap-cloud-ready-monitor'
+    scrape_configs:
+      - job_name: 'prometheus'
+        static_configs:
+        - targets: ['localhost:9090']
+      - job_name: 'weather-app-eap-cloud-ready'
+        static_configs:
+        - targets: ['weather-app-eap-cloud-ready:9990']

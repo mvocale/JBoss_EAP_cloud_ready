@@ -1,0 +1,39 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: jaeger-all-in-one-rhel8
+  namespace: redhat-jboss-eap-cloud-ready-demo
+  labels:
+    app: jaeger-all-in-one-rhel8
+spec:
+  ports:
+    - name: 5775-udp
+      protocol: UDP
+      port: 5775
+      targetPort: 5775
+    - name: 5778-tcp
+      protocol: TCP
+      port: 5778
+      targetPort: 5778
+    - name: 6831-udp
+      protocol: UDP
+      port: 6831
+      targetPort: 6831
+    - name: 6832-udp
+      protocol: UDP
+      port: 6832
+      targetPort: 6832
+    - name: 14250-tcp
+      protocol: TCP
+      port: 14250
+      targetPort: 14250
+    - name: 14268-tcp
+      protocol: TCP
+      port: 14268
+      targetPort: 14268
+    - name: 16686-tcp
+      protocol: TCP
+      port: 16686
+      targetPort: 16686
+  selector:
+    deployment: jaeger-all-in-one-rhel8
