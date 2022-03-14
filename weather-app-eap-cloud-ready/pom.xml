@@ -153,7 +153,6 @@
                     <excluded-layers>
                         <layer>deployment-scanner</layer>
                     </excluded-layers>
-                    <cloud/>
                 </configuration>
                 <executions>
                     <execution>
