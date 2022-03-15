@@ -20,6 +20,7 @@
         <version.wildfly.galleon.pack>3.0.0.GA-redhat-00012</version.wildfly.galleon.pack>
         <version.eap.datasources.galleon.pack>7.4.0.GA-redhat-00003</version.eap.datasources.galleon.pack>
         <org.jboss.eap.datasources.postgresql.driver.version>42.2.23.redhat-00001</org.jboss.eap.datasources.postgresql.driver.version>
+        <version.properties.maven.plugin>1.0.0</version.properties.maven.plugin>
         <!-- JKube properties to create my application image -->
         <version.jkube.openshift.maven.plugin>1.7.0</version.jkube.openshift.maven.plugin>
         <jkube.build.switchToDeployment>true</jkube.build.switchToDeployment>
@@ -114,7 +115,7 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>properties-maven-plugin</artifactId>
-                <version>1.0.0</version>
+                <version>${version.properties.maven.plugin}</version>
                 <executions>
                     <execution>
                         <goals>
